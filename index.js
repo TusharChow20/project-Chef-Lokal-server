@@ -6,6 +6,7 @@ const port = 3000 || process.env.PORT;
 
 const { MongoClient, ServerApiVersion } = require("mongodb");
 const uri = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASS}@cluster0.j7xeedk.mongodb.net/?appName=Cluster0`;
+app.use(express.json());
 app.use(cors());
 //mongo
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -21,6 +22,15 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
+
+    const myDB = client.db("projectChefLokal");
+    const mealCollection = myDB.collection("meals");
+
+    //get meals
+    app.get("/meals", async (req, res) => {
+      const meals = await mealCollection.find().toArray();
+      res.send(meals);
+    });
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
