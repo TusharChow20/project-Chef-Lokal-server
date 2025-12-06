@@ -25,12 +25,23 @@ async function run() {
 
     const myDB = client.db("projectChefLokal");
     const mealCollection = myDB.collection("meals");
+    const reviewsCollection = myDB.collection("reviews");
 
-    //get meals
+    // MEALS API'S
     app.get("/meals", async (req, res) => {
       const meals = await mealCollection.find().toArray();
       res.send(meals);
     });
+
+    //REVIEW API'S
+    app.get("/reviews", async (req, res) => {
+      const reviews = await reviewsCollection
+        .find()
+        .sort({ reviewDate: -1 })
+        .toArray();
+      res.send(reviews);
+    });
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
