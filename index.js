@@ -4,10 +4,13 @@ const cors = require("cors");
 const app = express();
 const port = 3000 || process.env.PORT;
 
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const uri = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASS}@cluster0.j7xeedk.mongodb.net/?appName=Cluster0`;
 app.use(express.json());
 app.use(cors());
+
+const stripe = require("stripe")(process.env.PAYMENT_SECRET);
+
 //mongo
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -26,8 +29,10 @@ async function run() {
     const myDB = client.db("projectChefLokal");
     const mealCollection = myDB.collection("meals");
     const reviewsCollection = myDB.collection("reviews");
+    const orderCollection = myDB.collection("order_collection");
+    // const
 
-    // MEALS API'S
+    // MEALS API'S---------------------------------------
     app.get("/meals", async (req, res) => {
       const { limit = 6, skip = 0, sortBy, sortOrder } = req.query;
       let sortOptions = {};
@@ -48,7 +53,22 @@ async function run() {
       res.send({ meals, total: totalMeals });
     });
 
-    //REVIEW API'S
+    //order details
+    app.post("/orders", async (req, res) => {
+      const orderData = req.body;
+      const result = await orderCollection.insertOne(orderData);
+      res.send(result);
+    });
+
+    //meal details-----------------------------------------
+    app.get("/mealDetails/:id", async (req, res) => {
+      const mealId = req.params.id;
+      const query = { _id: new ObjectId(mealId) };
+      const result = await mealCollection.findOne(query);
+      res.send(result);
+    });
+
+    //REVIEW API'S---------------------------------------
     app.get("/reviews", async (req, res) => {
       const reviews = await reviewsCollection
         .find()
@@ -58,6 +78,31 @@ async function run() {
       res.send(reviews);
     });
 
+    // paymetn api's--------------------------------------
+    app.post("/create-checkout-session", async (req, res) => {
+      const amount = parseInt(req.body.cost) * 100;
+      const session = await stripe.checkout.sessions.create({
+        line_items: [
+          {
+            // Provide the exact Price ID (for example, price_1234) of the product you want to sell
+            price_data: {
+              currency: "usd",
+              unit_amount: amount,
+              product_data: {
+                name: "Meal Order",
+                description: "Your delicious meal order",
+              },
+            },
+            quantity: 1,
+          },
+        ],
+        mode: "payment",
+        success_url: `${process.env.SITE_DOMAIN}?success=true`,
+        cancel_url: `${process.env.SITE_DOMAIN}?canceled=true`,
+      });
+
+      res.send({ url: session.url });
+    });
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
