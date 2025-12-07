@@ -29,14 +29,30 @@ async function run() {
 
     // MEALS API'S
     app.get("/meals", async (req, res) => {
-      const meals = await mealCollection.find().toArray();
-      res.send(meals);
+      const { limit = 6, skip = 0, sortBy, sortOrder } = req.query;
+      let sortOptions = {};
+      if (sortBy && sortOrder) {
+        sortOptions[sortBy] = sortOrder === "asc" ? 1 : -1;
+      }
+      const totalMeals = await mealCollection.countDocuments();
+      let query = mealCollection
+        .find()
+        .project({ ingredients: 0, estimatedDeliveryTime: 0, createdDate: 0 });
+      if (Object.keys(sortOptions).length > 0) {
+        query = query.sort(sortOptions);
+      }
+      const meals = await query
+        .limit(Number(limit))
+        .skip(Number(skip))
+        .toArray();
+      res.send({ meals, total: totalMeals });
     });
 
     //REVIEW API'S
     app.get("/reviews", async (req, res) => {
       const reviews = await reviewsCollection
         .find()
+
         .sort({ reviewDate: -1 })
         .toArray();
       res.send(reviews);
