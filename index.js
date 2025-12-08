@@ -31,6 +31,7 @@ async function run() {
     const reviewsCollection = myDB.collection("reviews");
     const orderCollection = myDB.collection("order_collection");
     const userCollection = myDB.collection("users");
+    const roleChangeCollection = myDB.collection("role_change_req");
     // const
 
     // MEALS API'S---------------------------------------
@@ -102,6 +103,20 @@ async function run() {
     app.post("/users", async (req, res) => {
       const userData = req.body;
       const result = await userCollection.insertOne(userData);
+      res.send(result);
+    });
+
+    //user role chnnage api's ----------------------------------
+    app.get("/role_change_req", async (req, res) => {
+      const email = req.query.email;
+      const user = await roleChangeCollection
+        .find({ userEmail: email })
+        .toArray();
+      res.send(user);
+    });
+    app.post("/role_change_req", async (req, res) => {
+      const roleUpdate = req.body;
+      const result = await roleChangeCollection.insertOne(roleUpdate);
       res.send(result);
     });
 
