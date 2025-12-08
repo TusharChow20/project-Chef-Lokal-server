@@ -85,6 +85,61 @@ async function run() {
         .toArray();
       res.send(reviews);
     });
+    app.get("/reviews/:email", async (req, res) => {
+      const email = req.params.email;
+      const result = await reviewsCollection
+        .find({ userEmail: email })
+        .toArray();
+      res.send(result);
+    });
+    app.patch("/reviews/:id", async (req, res) => {
+      const reviewId = req.params.id;
+      const { rating, comment } = req.body;
+      if (!ObjectId.isValid(reviewId)) {
+        return res.status(400).json({ message: "Invalid review ID" });
+      }
+
+      if (!rating || !comment) {
+        return res
+          .status(400)
+          .json({ message: "Rating and comment are required" });
+      }
+      if (rating < 1 || rating > 5) {
+        return res
+          .status(400)
+          .json({ message: "Rating must be between 1 and 5" });
+      }
+
+      const result = await reviewsCollection.updateOne(
+        { _id: new ObjectId(reviewId) },
+        {
+          $set: {
+            rating: rating,
+            reviewText: comment,
+            updatedAt: new Date(),
+          },
+        }
+      );
+
+      if (result.matchedCount === 0) {
+        return res.status(404).json({ message: "Review not found" });
+      }
+
+      res.status(200).json({
+        message: "Review updated successfully",
+        modifiedCount: result.modifiedCount,
+      });
+    });
+
+    app.delete("/reviews/:id", async (req, res) => {
+      const id = req.params.id;
+
+      const filter = { _id: new ObjectId(id) };
+
+      const result = await reviewsCollection.deleteOne(filter);
+
+      res.send(result);
+    });
 
     //users api's---------------------------------------------
     app.get("/users", async (req, res) => {
@@ -191,6 +246,9 @@ async function run() {
 
       res.send({ url: session.url });
     });
+
+    // review api's----------------------------------
+
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
