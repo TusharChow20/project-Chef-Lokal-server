@@ -30,6 +30,7 @@ async function run() {
     const mealCollection = myDB.collection("meals");
     const reviewsCollection = myDB.collection("reviews");
     const orderCollection = myDB.collection("order_collection");
+    const userCollection = myDB.collection("users");
     // const
 
     // MEALS API'S---------------------------------------
@@ -53,7 +54,7 @@ async function run() {
       res.send({ meals, total: totalMeals });
     });
 
-    //order details
+    //order details-----------------------------------------
     app.post("/orders", async (req, res) => {
       const orderData = req.body;
       const result = await orderCollection.insertOne(orderData);
@@ -77,7 +78,12 @@ async function run() {
         .toArray();
       res.send(reviews);
     });
-
+    //users api's---------------------------------------------
+    app.post("/users", async (req, res) => {
+      const userData = req.body;
+      const result = await userCollection.insertOne(userData);
+      res.send(result);
+    });
     // paymetn api's--------------------------------------
     app.post("/create-checkout-session", async (req, res) => {
       const amount = parseInt(req.body.cost) * 100;
