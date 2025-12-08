@@ -100,6 +100,38 @@ async function run() {
       res.send({ role: user?.role });
     });
 
+    app.patch("/users/:email", async (req, res) => {
+      const email = req.params.email;
+
+      const { requestType, userStatus } = req.body;
+
+      let updateFields = {};
+
+      // If approving and a role is provided
+      if (requestType) {
+        if (requestType === "chef") {
+          const chefId = "chef-" + Math.floor(1000 + Math.random() * 9000);
+          updateFields.role = "chef";
+          updateFields.chefId = chefId;
+        } else {
+          updateFields.role = requestType;
+        }
+      }
+
+      // If rejecting
+      if (userStatus) {
+        updateFields.userStatus = userStatus;
+      }
+
+      // Only update fields that exist
+      const result = await userCollection.updateOne(
+        { email },
+        { $set: updateFields }
+      );
+
+      res.send(result);
+    });
+
     app.post("/users", async (req, res) => {
       const userData = req.body;
       const result = await userCollection.insertOne(userData);
@@ -107,6 +139,11 @@ async function run() {
     });
 
     //user role chnnage api's ----------------------------------
+    app.get("/role_change_req/all", async (req, res) => {
+      const requests = await roleChangeCollection.find().toArray();
+      res.send(requests);
+    });
+    //filtered user role api
     app.get("/role_change_req", async (req, res) => {
       const email = req.query.email;
       const user = await roleChangeCollection
@@ -114,6 +151,15 @@ async function run() {
         .toArray();
       res.send(user);
     });
+
+    app.delete("/role_change_req/:id", async (req, res) => {
+      const id = req.params.id;
+      const result = await roleChangeCollection.deleteOne({
+        _id: new ObjectId(id),
+      });
+      res.send(result);
+    });
+
     app.post("/role_change_req", async (req, res) => {
       const roleUpdate = req.body;
       const result = await roleChangeCollection.insertOne(roleUpdate);
