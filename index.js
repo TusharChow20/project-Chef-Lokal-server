@@ -91,6 +91,14 @@ async function run() {
       const user = await userCollection.findOne({ email });
       res.send(user);
     });
+
+    app.get("/users/:email/role", async (req, res) => {
+      const email = req.params.email;
+      const user = await userCollection.findOne({ email });
+
+      res.send({ role: user?.role });
+    });
+
     app.post("/users", async (req, res) => {
       const userData = req.body;
       const result = await userCollection.insertOne(userData);
