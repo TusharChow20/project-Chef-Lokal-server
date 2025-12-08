@@ -34,6 +34,7 @@ async function run() {
     // const
 
     // MEALS API'S---------------------------------------
+
     app.get("/meals", async (req, res) => {
       const { limit = 6, skip = 0, sortBy, sortOrder } = req.query;
       let sortOptions = {};
@@ -55,6 +56,11 @@ async function run() {
     });
 
     //order details-----------------------------------------
+    app.get("/orders", async (req, res) => {
+      const email = req.query.email;
+      const result = await orderCollection.find({ userEmail: email }).toArray();
+      res.send(result);
+    });
     app.post("/orders", async (req, res) => {
       const orderData = req.body;
       const result = await orderCollection.insertOne(orderData);
