@@ -78,12 +78,19 @@ async function run() {
         .toArray();
       res.send(reviews);
     });
+
     //users api's---------------------------------------------
+    app.get("/users", async (req, res) => {
+      const email = req.query.email;
+      const user = await userCollection.findOne({ email });
+      res.send(user);
+    });
     app.post("/users", async (req, res) => {
       const userData = req.body;
       const result = await userCollection.insertOne(userData);
       res.send(result);
     });
+
     // paymetn api's--------------------------------------
     app.post("/create-checkout-session", async (req, res) => {
       const amount = parseInt(req.body.cost) * 100;
