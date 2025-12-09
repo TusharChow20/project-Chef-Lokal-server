@@ -92,6 +92,13 @@ async function run() {
         .toArray();
       res.send(result);
     });
+
+    app.post("/reviews", async (req, res) => {
+      const reviewPayload = req.body;
+      const result = await reviewsCollection.insertOne(reviewPayload);
+      res.send(result);
+    });
+
     app.patch("/reviews/:id", async (req, res) => {
       const reviewId = req.params.id;
       const { rating, comment } = req.body;
