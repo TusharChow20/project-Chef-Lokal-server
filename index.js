@@ -91,9 +91,24 @@ async function run() {
       const result = await orderCollection.find({ userEmail: email }).toArray();
       res.send(result);
     });
+    app.get("/orders/:chefId", async (req, res) => {
+      const chefId = req.params.chefId;
+      const result = await orderCollection.find({ chefId: chefId }).toArray();
+      res.send(result);
+    });
     app.post("/orders", async (req, res) => {
       const orderData = req.body;
       const result = await orderCollection.insertOne(orderData);
+      res.send(result);
+    });
+
+    app.patch("/orders/update/:orderId", async (req, res) => {
+      const orderId = req.params.orderId;
+      const { orderStatus } = req.body;
+      const result = await orderCollection.updateOne(
+        { _id: new ObjectId(orderId) },
+        { $set: { orderStatus: orderStatus } }
+      );
       res.send(result);
     });
 
@@ -104,6 +119,8 @@ async function run() {
       const result = await mealCollection.findOne(query);
       res.send(result);
     });
+
+    //orderhandle api
 
     //REVIEW API'S---------------------------------------
     app.get("/reviews", async (req, res) => {
