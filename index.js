@@ -32,6 +32,7 @@ async function run() {
     const orderCollection = myDB.collection("order_collection");
     const userCollection = myDB.collection("users");
     const roleChangeCollection = myDB.collection("role_change_req");
+    const favoriteCollection = myDB.collection("favorite");
     // const
 
     // MEALS API'S---------------------------------------
@@ -92,6 +93,15 @@ async function run() {
         .toArray();
       res.send(result);
     });
+    app.get("/reviews/meal/:mealId", async (req, res) => {
+      const mealId = req.params.mealId;
+      console.log(mealId);
+
+      const result = await reviewsCollection.find({ mealId }).toArray();
+      console.log(result);
+
+      res.send(result);
+    });
 
     app.post("/reviews", async (req, res) => {
       const reviewPayload = req.body;
@@ -145,6 +155,14 @@ async function run() {
 
       const result = await reviewsCollection.deleteOne(filter);
 
+      res.send(result);
+    });
+
+    //favorite api's
+    app.post("/favorites", async (req, res) => {
+      const favoriteInfo = req.body;
+
+      const result = favoriteCollection.insertOne(favoriteInfo);
       res.send(result);
     });
 
