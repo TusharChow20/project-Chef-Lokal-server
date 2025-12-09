@@ -32,6 +32,7 @@ async function run() {
     const orderCollection = myDB.collection("order_collection");
     const userCollection = myDB.collection("users");
     const roleChangeCollection = myDB.collection("role_change_req");
+    const paymentHistoryCollection = myDB.collection("paymentHistory");
     const favoriteCollection = myDB.collection("favorite");
     // const
 
@@ -313,11 +314,12 @@ async function run() {
 
     // paymetn api's--------------------------------------
     app.post("/create-checkout-session", async (req, res) => {
-      const amount = parseInt(req.body.cost) * 100;
+      const { cost, orderId } = req.body; // Add orderId
+      const amount = parseInt(cost) * 100;
+
       const session = await stripe.checkout.sessions.create({
         line_items: [
           {
-            // Provide the exact Price ID (for example, price_1234) of the product you want to sell
             price_data: {
               currency: "usd",
               unit_amount: amount,
@@ -330,11 +332,54 @@ async function run() {
           },
         ],
         mode: "payment",
-        success_url: `${process.env.SITE_DOMAIN}?success=true`,
-        cancel_url: `${process.env.SITE_DOMAIN}?canceled=true`,
+        success_url: `${process.env.SITE_DOMAIN}/payment-success?session_id={CHECKOUT_SESSION_ID}&order_id=${orderId}`,
+        cancel_url: `${process.env.SITE_DOMAIN}/my-orders?canceled=true`,
+        metadata: {
+          orderId: orderId, // Store orderId in metadata
+        },
       });
 
       res.send({ url: session.url });
+    });
+
+    app.post("/verify-payment", async (req, res) => {
+      const { sessionId, orderId } = req.body;
+
+      const session = await stripe.checkout.sessions.retrieve(sessionId);
+
+      if (session.payment_status === "paid") {
+        const order = await orderCollection.findOne({
+          _id: new ObjectId(orderId),
+        });
+
+        await orderCollection.updateOne(
+          { _id: new ObjectId(orderId) },
+          { $set: { paymentStatus: "paid" } }
+        );
+
+        const paymentHistory = {
+          orderId: orderId,
+          sessionId: sessionId,
+          amount: session.amount_total / 100,
+          currency: session.currency,
+          paymentStatus: session.payment_status,
+          customerEmail: order.userEmail,
+          mealName: order.mealName,
+          quantity: order.quantity,
+          chefId: order.chefId,
+          chefName: order.chefName,
+          paymentDate: new Date(),
+          stripePaymentIntentId: session.payment_intent,
+        };
+
+        await paymentHistoryCollection.insertOne(paymentHistory);
+
+        res.send({ success: true, payment: paymentHistory });
+      } else {
+        res
+          .status(400)
+          .send({ success: false, message: "Payment not completed" });
+      }
     });
 
     // review api's----------------------------------
