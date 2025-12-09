@@ -62,6 +62,29 @@ async function run() {
       res.send(response);
     });
 
+    app.get("/meals/chef/:chefId", async (req, res) => {
+      const chefId = req.params.chefId;
+      const response = await mealCollection.find({ chefId: chefId }).toArray();
+      res.send(response);
+    });
+
+    app.put("/meals/meal/:id", async (req, res) => {
+      const id = req.params.id;
+      const updateData = {
+        $set: req.body,
+      };
+      const result = await mealCollection.updateOne(
+        { _id: new ObjectId(id) },
+        updateData
+      );
+      res.send(result);
+    });
+    app.delete("/meals/:id", async (req, res) => {
+      const id = req.params.id;
+      const result = await mealCollection.deleteOne({ _id: new ObjectId(id) });
+      res.send(result);
+    });
+
     //order details-----------------------------------------
     app.get("/orders", async (req, res) => {
       const email = req.query.email;
