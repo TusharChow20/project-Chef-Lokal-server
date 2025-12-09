@@ -164,13 +164,28 @@ async function run() {
       const result = await favoriteCollection.findOne({ userEmail: email });
       res.send(result);
     });
+    app.get("/favorites/all/:email", async (req, res) => {
+      const email = req.params.email;
+      const result = await favoriteCollection
+        .find({ userEmail: email })
+        .toArray();
+      res.send(result);
+    });
+
     app.post("/favorites", async (req, res) => {
       const favoriteInfo = req.body;
 
       const result = favoriteCollection.insertOne(favoriteInfo);
       res.send(result);
     });
+    app.delete("/favorites/:id", async (req, res) => {
+      const id = req.params.id;
 
+      const result = await favoriteCollection.deleteOne({
+        _id: new ObjectId(id),
+      });
+      res.send(result);
+    });
     //users api's---------------------------------------------
     app.get("/users", async (req, res) => {
       const email = req.query.email;
