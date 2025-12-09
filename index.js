@@ -159,6 +159,11 @@ async function run() {
     });
 
     //favorite api's
+    app.get("/favorites/:email", async (req, res) => {
+      const email = req.params.email;
+      const result = await favoriteCollection.findOne({ userEmail: email });
+      res.send(result);
+    });
     app.post("/favorites", async (req, res) => {
       const favoriteInfo = req.body;
 
