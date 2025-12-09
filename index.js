@@ -56,6 +56,11 @@ async function run() {
         .toArray();
       res.send({ meals, total: totalMeals });
     });
+    app.post("/meals", async (req, res) => {
+      const mealData = req.body;
+      const response = await mealCollection.insertOne(mealData);
+      res.send(response);
+    });
 
     //order details-----------------------------------------
     app.get("/orders", async (req, res) => {
