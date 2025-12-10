@@ -75,7 +75,7 @@ async function run() {
     app.get("/meals", async (req, res) => {
       // console.log(req?.headers?.authorization);
 
-      const { limit = 6, skip = 0, sortBy, sortOrder } = req.query;
+      const { limit = 10, skip = 0, sortBy, sortOrder } = req.query;
       let sortOptions = {};
       if (sortBy && sortOrder) {
         sortOptions[sortBy] = sortOrder === "asc" ? 1 : -1;
