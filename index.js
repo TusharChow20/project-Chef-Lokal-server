@@ -311,7 +311,7 @@ async function run() {
       const email = req.params.email;
       const user = await userCollection.findOne({ email });
 
-      res.send({ role: user?.role });
+      res.send({ role: user.role });
     });
 
     app.patch("/users/:email", async (req, res) => {
