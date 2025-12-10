@@ -71,6 +71,27 @@ async function run() {
     // const
 
     // MEALS API'S---------------------------------------
+    app.get("/home/meals", async (req, res) => {
+      // console.log(req?.headers?.authorization);
+
+      const { limit = 6, skip = 0, sortBy, sortOrder } = req.query;
+      let sortOptions = {};
+      if (sortBy && sortOrder) {
+        sortOptions[sortBy] = sortOrder === "asc" ? 1 : -1;
+      }
+      const totalMeals = await mealCollection.countDocuments();
+      let query = mealCollection
+        .find()
+        .project({ ingredients: 0, estimatedDeliveryTime: 0, createdDate: 0 });
+      if (Object.keys(sortOptions).length > 0) {
+        query = query.sort(sortOptions);
+      }
+      const meals = await query
+        .limit(Number(limit))
+        .skip(Number(skip))
+        .toArray();
+      res.send({ meals, total: totalMeals });
+    });
 
     app.get("/meals", async (req, res) => {
       // console.log(req?.headers?.authorization);
