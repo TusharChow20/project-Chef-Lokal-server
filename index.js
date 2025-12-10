@@ -87,6 +87,10 @@ async function run() {
     });
 
     //order details-----------------------------------------
+    app.get("/orders/all", async (req, res) => {
+      const orders = await orderCollection.find().toArray();
+      res.send(orders);
+    });
     app.get("/orders", async (req, res) => {
       const email = req.query.email;
       const result = await orderCollection.find({ userEmail: email }).toArray();
@@ -385,7 +389,10 @@ async function run() {
           .send({ success: false, message: "Payment not completed" });
       }
     });
-
+    app.get("/paymentHistory", async (req, res) => {
+      const payment = await paymentHistoryCollection.find().toArray();
+      res.send(payment);
+    });
     // review api's----------------------------------
 
     // Send a ping to confirm a successful connection
