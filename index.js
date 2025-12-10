@@ -233,6 +233,10 @@ async function run() {
       res.send(result);
     });
     //users api's---------------------------------------------
+    app.get("/user/allUser", async (req, res) => {
+      const user = await userCollection.find().toArray();
+      res.send(user);
+    });
     app.get("/users", async (req, res) => {
       const email = req.query.email;
       const user = await userCollection.findOne({ email });
