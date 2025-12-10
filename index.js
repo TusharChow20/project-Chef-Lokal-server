@@ -12,7 +12,11 @@ app.use(cors());
 
 const admin = require("firebase-admin");
 
-const serviceAccount = require("./firebaseAdminSDK.json");
+const decoded = Buffer.from(
+  process.env.FIREBASE_SERVICE_KEY,
+  "base64"
+).toString("utf8");
+const serviceAccount = JSON.parse(decoded);
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
@@ -58,7 +62,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
 
     const myDB = client.db("projectChefLokal");
     const mealCollection = myDB.collection("meals");
@@ -456,7 +460,7 @@ async function run() {
     // review api's----------------------------------
 
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
