@@ -8,6 +8,40 @@ const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const uri = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASS}@cluster0.j7xeedk.mongodb.net/?appName=Cluster0`;
 app.use(express.json());
 app.use(cors());
+// jwt token
+
+const admin = require("firebase-admin");
+
+const serviceAccount = require("./firebaseAdminSDK.json");
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount),
+});
+
+const verifyFirebaseToken = async (req, res, next) => {
+  try {
+    const authHeader = req.headers.authorization;
+
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return res
+        .status(401)
+        .json({ message: "Unauthorized: No token provided" });
+    }
+    try {
+      const token = authHeader.split(" ")[1];
+      const decodedToken = await admin.auth().verifyIdToken(token);
+      req.decodedEmail = decodedToken.email;
+      next();
+    } catch (err) {
+      return res.status(401).send({ message: "unauthorized access" });
+    }
+
+    // console.log("Verified user:", decodedToken.email);
+  } catch (error) {
+    console.error("Token verification error:", error);
+    return res.status(401).json({ message: "Unauthorized: Invalid token" });
+  }
+};
 
 const stripe = require("stripe")(process.env.PAYMENT_SECRET);
 
@@ -39,6 +73,8 @@ async function run() {
     // MEALS API'S---------------------------------------
 
     app.get("/meals", async (req, res) => {
+      // console.log(req?.headers?.authorization);
+
       const { limit = 6, skip = 0, sortBy, sortOrder } = req.query;
       let sortOptions = {};
       if (sortBy && sortOrder) {
@@ -136,8 +172,11 @@ async function run() {
         .toArray();
       res.send(reviews);
     });
-    app.get("/reviews/:email", async (req, res) => {
+    app.get("/reviews/:email", verifyFirebaseToken, async (req, res) => {
       const email = req.params.email;
+      if (email !== req.decodedEmail) {
+        return res.status(403).send({ message: "Forbidden Access" });
+      }
       const result = await reviewsCollection
         .find({ userEmail: email })
         .toArray();
@@ -145,15 +184,15 @@ async function run() {
     });
     app.get("/reviews/meal/:mealId", async (req, res) => {
       const mealId = req.params.mealId;
-      console.log(mealId);
+      // console.log(mealId);
 
       const result = await reviewsCollection.find({ mealId }).toArray();
-      console.log(result);
+      // console.log(result);
 
       res.send(result);
     });
 
-    app.post("/reviews", async (req, res) => {
+    app.post("/reviews", verifyFirebaseToken, async (req, res) => {
       const reviewPayload = req.body;
       const result = await reviewsCollection.insertOne(reviewPayload);
       res.send(result);
