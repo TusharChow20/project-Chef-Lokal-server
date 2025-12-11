@@ -11,6 +11,7 @@ app.use(cors());
 // jwt token
 
 const admin = require("firebase-admin");
+// console.log("SITE_DOMAIN =", process.env.SITE_DOMAIN);
 
 const decoded = Buffer.from(
   process.env.FIREBASE_SERVICE_KEY,
@@ -96,7 +97,6 @@ async function run() {
         .toArray();
       res.send({ meals, total: totalMeals });
     });
-
     app.get("/meals", async (req, res) => {
       // console.log(req?.headers?.authorization);
 
