@@ -617,15 +617,10 @@ Contributions are welcome! Please follow these steps:
 
 ---
 
-## 📝 License
-
-Distributed under the MIT License. See `LICENSE` for more information.
-
----
 
 ## 📧 Contact
 
-**Project Maintainer:** Your Name
+**Project Maintainer:** Tushar Chowdhury
 
 - 📧 Email: tusharchowdhury20211@gmail.com
 - 🐙 GitHub: [Tushar Chowdhury](https://github.com/TusharChow20)
